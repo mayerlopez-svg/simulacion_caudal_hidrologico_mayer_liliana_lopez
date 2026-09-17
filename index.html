@@ -3,36 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador HidrolÃ³gico de Caudal</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Simulador de Caudal HidrolÃ³gico - RÃ­o Cauca</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome CDN for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            900: '#1e3a8a'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         /* Custom scrollbars */
         ::-webkit-scrollbar {
@@ -40,470 +31,498 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.05);
+            background: #1e293b;
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(100,116,139,0.3);
-            border-radius: 4px;
+            background: #475569;
+            border-radius: 3px;
         }
-        .water-animation {
-            background: linear-gradient(180deg, rgba(59,130,246,0.8) 0%, rgba(29,78,216,0.95) 100%);
-            transition: height 0.15s ease-out;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+<body class="min-h-screen pb-10">
 
-    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/60 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
-                    <i class="fa-solid fa-water-waves text-xl"></i>
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30">
+                    <i class="fa-solid font-bold fa-water text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-teal-300 bg-clip-text text-transparent">
-                        Simulador HidrolÃ³gico de Caudal
-                    </h1>
-                    <p class="text-xs text-slate-400">AnÃ¡lisis y DinÃ¡mica de Flujo t = 0 a 36 h</p>
+                    <h1 class="text-lg font-bold text-white tracking-wide">Simulador HidrolÃ³gico - RÃ­o Cauca</h1>
+                    <p class="text-xs text-slate-400">ModelaciÃ³n DinÃ¡mica de Caudal & IntegraciÃ³n NumÃ©rica (EstaciÃ³n Juanchito / Valle)</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-2">
-                <button id="btnResetData" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-700/50 hover:bg-slate-700 rounded-lg border border-slate-600 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-rotate-left"></i> Restablecer Datos
-                </button>
-                <button id="btnExportCSV" class="px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-950/40 hover:bg-blue-900/60 rounded-lg border border-blue-800/60 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-download"></i> Exportar CSV
-                </button>
+
+            <div class="flex items-center gap-2 text-xs">
+                <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    Estado: Normal Monitoreado
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
+                    <i class="fa-solid fa-clock text-blue-400 mr-1"></i> Ventana: 36 Horas
+                </span>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
 
-        <!-- LEFT PANEL: Simulation Controls & Real-time Metrics (5 Cols) -->
-        <div class="lg:col-span-5 space-y-6">
-
-            <!-- Real-time Metrics KPI Dashboard -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-3 opacity-10 text-blue-400">
-                        <i class="fa-solid fa-gauge-high text-4xl"></i>
-                    </div>
-                    <span class="text-xs text-slate-400 font-medium">Caudal InstantÃ¡neo Q(t)</span>
-                    <div class="flex items-baseline mt-1 space-x-1">
-                        <span id="kpiCurrentQ" class="text-2xl sm:text-3xl font-extrabold text-blue-400">1162.18</span>
-                        <span class="text-xs text-slate-400">mÂ³/s</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 mt-1" id="kpiTimeLabel">En t = 0.00 h</p>
+        <section class="glass-panel p-5 rounded-2xl">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <button id="playBtn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl transition flex items-center gap-2 shadow-lg shadow-blue-600/30">
+                        <i class="fa-solid fa-play" id="playIcon"></i>
+                        <span id="playText">Iniciar SimulaciÃ³n</span>
+                    </button>
+                    <button id="resetBtn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl border border-slate-700 transition">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Reiniciar
+                    </button>
                 </div>
 
-                <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-3 opacity-10 text-teal-400">
-                        <i class="fa-solid fa-box-archive text-4xl"></i>
-                    </div>
-                    <span class="text-xs text-slate-400 font-medium">Volumen Acumulado V(t)</span>
-                    <div class="flex items-baseline mt-1 space-x-1">
-                        <span id="kpiVolumeHm" class="text-2xl sm:text-3xl font-extrabold text-teal-400">0.00</span>
-                        <span class="text-xs text-slate-400">hmÂ³</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 mt-1" id="kpiVolumeM3">0 mÂ³ escurridos</p>
+                <div class="flex items-center gap-4 flex-1 max-w-xl bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Tiempo (t):</span>
+                    <input type="range" id="timeSlider" min="0" max="36" step="0.1" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    <span id="currentTimeDisplay" class="font-mono text-base font-bold text-blue-400 min-w-[70px] text-right">0.0 h</span>
                 </div>
 
-                <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-3 opacity-10 text-amber-400">
-                        <i class="fa-solid fa-chart-line-up text-4xl"></i>
-                    </div>
-                    <span class="text-xs text-slate-400 font-medium">Caudal MÃ¡ximo (Pico)</span>
-                    <div class="flex items-baseline mt-1 space-x-1">
-                        <span id="kpiMaxQ" class="text-xl font-bold text-amber-400">1265.22</span>
-                        <span class="text-xs text-slate-400">mÂ³/s</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-1" id="kpiMaxQTime">Registrado a las 30 h</p>
-                </div>
-
-                <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-3 opacity-10 text-purple-400">
-                        <i class="fa-solid fa-calculator text-4xl"></i>
-                    </div>
-                    <span class="text-xs text-slate-400 font-medium">Volumen Total (36h)</span>
-                    <div class="flex items-baseline mt-1 space-x-1">
-                        <span id="kpiTotalVolume" class="text-xl font-bold text-purple-400">153.64</span>
-                        <span class="text-xs text-slate-400">hmÂ³</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-1">IntegraciÃ³n total del evento</p>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-slate-400">Escenario:</label>
+                    <select id="scenarioSelect" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="baseline">Datos Reales Observados</option>
+                        <option value="flood">+25% Incremento por Tormenta</option>
+                        <option value="drought">-15% ReducciÃ³n Estacional</option>
+                        <option value="pulse">Avenida Torrencial (Pico $t=18$h)</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Time Control Box -->
-            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700/60 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-blue-400"></i> Control de ReproducciÃ³n
-                    </h2>
-                    <span id="timeBadge" class="bg-blue-500/20 text-blue-300 text-xs font-mono font-bold px-2.5 py-1 rounded-md border border-blue-500/30">
-                        00:00 h (t = 0.0 h)
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+                <div><i class="fa-solid fa-arrow-down-short-wide text-blue-400 mr-1"></i> Caudal MÃ­nimo: <span id="statQMin" class="text-slate-200 font-semibold">-- mÂ³/s</span></div>
+                <div><i class="fa-solid fa-arrow-up-wide-short text-amber-400 mr-1"></i> Caudal MÃ¡ximo: <span id="statQMax" class="text-slate-200 font-semibold">-- mÂ³/s</span></div>
+                <div><i class="fa-solid fa-calculator text-emerald-400 mr-1"></i> Caudal Promedio: <span id="statQAvg" class="text-slate-200 font-semibold">-- mÂ³/s</span></div>
+                <div><i class="fa-solid fa-database text-cyan-400 mr-1"></i> Vol. Acumulado 36h: <span id="statVolTotal" class="text-slate-200 font-semibold">-- HmÂ³</span></div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Instantaneous Flow Rate -->
+            <div class="glass-panel p-5 rounded-2xl relative overflow-hidden">
+                <div class="absolute -right-2 -bottom-2 opacity-10 text-blue-500">
+                    <i class="fa-solid fa-gauge-high text-7xl"></i>
+                </div>
+                <div class="text-xs font-medium text-slate-400 mb-1">Caudal InstantÃ¡neo $Q(t)$</div>
+                <div class="flex items-baseline gap-2">
+                    <span id="kpiQ" class="text-3xl font-extrabold text-white font-mono">1162.18</span>
+                    <span class="text-sm font-semibold text-blue-400">mÂ³/s</span>
+                </div>
+                <div class="mt-3 flex items-center gap-2 text-xs">
+                    <span id="qTrendBadge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                        <i class="fa-solid fa-minus text-slate-400 mr-1"></i>0.0 mÂ³/sÂ²
                     </span>
+                    <span class="text-slate-500">VariaciÃ³n Temporal</span>
                 </div>
+            </div>
 
-                <!-- Slider -->
+            <!-- Card 2: Estimated Water Level -->
+            <div class="glass-panel p-5 rounded-2xl relative overflow-hidden">
+                <div class="absolute -right-2 -bottom-2 opacity-10 text-cyan-500">
+                    <i class="fa-solid fa-water text-7xl"></i>
+                </div>
+                <div class="text-xs font-medium text-slate-400 mb-1">Nivel Estimado del RÃ­o $h(t)$</div>
+                <div class="flex items-baseline gap-2">
+                    <span id="kpiDepth" class="text-3xl font-extrabold text-white font-mono">4.12</span>
+                    <span class="text-sm font-semibold text-cyan-400">m</span>
+                </div>
+                <div class="mt-3 flex items-center text-xs text-slate-400 gap-1">
+                    <i class="fa-solid fa-ruler-vertical text-cyan-400"></i> CalibraciÃ³n Manning ($B=90$m, $n=0.032$)
+                </div>
+            </div>
+
+            <!-- Card 3: Flow Velocity -->
+            <div class="glass-panel p-5 rounded-2xl relative overflow-hidden">
+                <div class="absolute -right-2 -bottom-2 opacity-10 text-emerald-500">
+                    <i class="fa-solid fa-bolt text-7xl"></i>
+                </div>
+                <div class="text-xs font-medium text-slate-400 mb-1">Velocidad Media del Flujo $V(t)$</div>
+                <div class="flex items-baseline gap-2">
+                    <span id="kpiVelocity" class="text-3xl font-extrabold text-white font-mono">3.14</span>
+                    <span class="text-sm font-semibold text-emerald-400">m/s</span>
+                </div>
+                <div class="mt-3 flex items-center text-xs text-slate-400 gap-1">
+                    <i class="fa-solid fa-wind text-emerald-400"></i> RÃ©gimen SubcrÃ­tico ($Fr < 1.0$)
+                </div>
+            </div>
+
+            <!-- Card 4: Integrated Volume -->
+            <div class="glass-panel p-5 rounded-2xl relative overflow-hidden">
+                <div class="absolute -right-2 -bottom-2 opacity-10 text-purple-500">
+                    <i class="fa-solid fa-box-archive text-7xl"></i>
+                </div>
+                <div class="text-xs font-medium text-slate-400 mb-1">Volumen Acumulado hasta $t$</div>
+                <div class="flex items-baseline gap-2">
+                    <span id="kpiVolume" class="text-3xl font-extrabold text-white font-mono">0.00</span>
+                    <span class="text-sm font-semibold text-purple-400">HmÂ³</span>
+                </div>
+                <div class="mt-3 text-xs text-slate-400 flex items-center gap-1">
+                    <i class="fa-solid fa-square-root-variable text-purple-400"></i> IntegraciÃ³n Trapezoidal $\int Q dt$
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Hydrograph Chart (8 cols) -->
+            <div class="lg:col-span-7 glass-panel p-5 rounded-2xl flex flex-col justify-between">
                 <div>
-                    <input type="range" id="timeSlider" min="0" max="36" step="0.05" value="0"
-                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                    <div class="flex justify-between text-[11px] text-slate-400 font-mono mt-1">
-                        <span>0h (Inicio)</span>
-                        <span>12h (MÃ­nimo)</span>
-                        <span>24h</span>
-                        <span>30h (Pico)</span>
-                        <span>36h (Final)</span>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-chart-line text-blue-400"></i> Hidrograma de Caudal $Q(t)$
+                            </h2>
+                            <p class="text-xs text-slate-400">Puntos medidos e interpolaciÃ³n Spline CÃºbica en las 36 horas</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="flex items-center gap-1 text-[11px] text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Curva Simulada
+                            </span>
+                            <span class="flex items-center gap-1 text-[11px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span> Datos Adjuntos
+                            </span>
+                        </div>
+                    </div>
+                    <div class="h-[320px] w-full relative">
+                        <canvas id="hydrographCanvas"></canvas>
                     </div>
                 </div>
 
-                <!-- Buttons -->
-                <div class="flex items-center justify-between pt-2">
-                    <div class="flex items-center space-x-2">
-                        <button id="btnPlayPause" class="w-10 h-10 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow-lg shadow-blue-600/30">
-                            <i id="playIcon" class="fa-solid fa-play"></i>
-                        </button>
-                        <button id="btnStop" class="w-10 h-10 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center justify-center transition">
-                            <i class="fa-solid fa-square"></i>
-                        </button>
-                        <button id="btnStepBack" class="w-8 h-8 rounded-lg bg-slate-700/60 hover:bg-slate-600 text-slate-300 flex items-center justify-center text-xs transition">
-                            <i class="fa-solid fa-backward-step"></i>
-                        </button>
-                        <button id="btnStepForward" class="w-8 h-8 rounded-lg bg-slate-700/60 hover:bg-slate-600 text-slate-300 flex items-center justify-center text-xs transition">
-                            <i class="fa-solid fa-forward-step"></i>
-                        </button>
-                    </div>
-
-                    <!-- Speed Selector -->
-                    <div class="flex items-center space-x-1 bg-slate-900/60 p-1 rounded-lg border border-slate-700/50">
-                        <span class="text-[11px] text-slate-400 px-1 font-medium">Velocidad:</span>
-                        <button class="btnSpeed px-2 py-0.5 text-xs rounded font-mono text-slate-300 hover:bg-slate-700" data-speed="1">1x</button>
-                        <button class="btnSpeed px-2 py-0.5 text-xs rounded font-mono text-slate-300 hover:bg-slate-700 bg-blue-600 text-white" data-speed="3">3x</button>
-                        <button class="btnSpeed px-2 py-0.5 text-xs rounded font-mono text-slate-300 hover:bg-slate-700" data-speed="6">6x</button>
-                    </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex flex-wrap justify-between items-center gap-2">
+                    <span><i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> La zona sombreada representa el volumen total discurriendo por el cauce.</span>
+                    <span id="interpolationInfo" class="font-mono text-slate-300">Spline MonÃ³tona Activa</span>
                 </div>
             </div>
 
-            <!-- River / Channel Cross Section Animation -->
-            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700/60 space-y-3">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-water text-cyan-400"></i> SecciÃ³n Transversal Canal del RÃ­o
-                    </h3>
-                    <span id="waterDepthText" class="text-xs text-cyan-400 font-mono font-medium">Nivel: 82%</span>
-                </div>
-
-                <!-- Animated River Box -->
-                <div class="relative w-full h-40 bg-slate-950 rounded-lg overflow-hidden border border-slate-700/80 flex flex-col justify-end">
-                    <!-- Background Grid/Depth markers -->
-                    <div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none opacity-20 text-[10px] text-slate-400 font-mono">
-                        <div class="border-b border-dashed border-slate-500 w-full flex justify-between">
-                            <span>Q_max: 1300 mÂ³/s</span><span>100%</span>
-                        </div>
-                        <div class="border-b border-dashed border-slate-500 w-full flex justify-between">
-                            <span>1200 mÂ³/s</span><span>75%</span>
-                        </div>
-                        <div class="border-b border-dashed border-slate-500 w-full flex justify-between">
-                            <span>1100 mÂ³/s</span><span>50%</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>0 mÂ³/s</span><span>0%</span>
-                        </div>
-                    </div>
-
-                    <!-- Water animation layer -->
-                    <div id="waterBody" class="water-animation w-full relative">
-                        <!-- Wave top overlay effect -->
-                        <div class="absolute top-0 left-0 right-0 h-2 bg-cyan-300/40 animate-pulse"></div>
-                    </div>
-
-                    <!-- Flow Particles Canvas -->
-                    <canvas id="canvasParticles" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-
-                    <!-- Current value badge overlay -->
-                    <div class="absolute bottom-2 left-3 bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded border border-slate-700 text-xs font-mono text-cyan-300">
-                        Q = <span id="visualQVal">1162.18</span> mÂ³/s
-                    </div>
-                </div>
-            </div>
-
-            <!-- Interpolation & Math Settings -->
-            <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60">
-                <label class="block text-xs font-semibold text-slate-300 mb-2">MÃ©todo de InterpolaciÃ³n Curva</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="btnMethodPCHIP" class="method-btn active px-3 py-2 text-xs font-medium rounded-lg border bg-blue-600/30 border-blue-500 text-blue-200 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-bezier-curve"></i> PCHIP (CÃºbica Suave)
-                    </button>
-                    <button id="btnMethodLinear" class="method-btn px-3 py-2 text-xs font-medium rounded-lg border bg-slate-700/40 border-slate-600 text-slate-400 hover:bg-slate-700 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-chart-line"></i> Lineal
-                    </button>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- RIGHT PANEL: Chart, Hydrograph & Measured Data Table (7 Cols) -->
-        <div class="lg:col-span-7 space-y-6">
-
-            <!-- Chart Container -->
-            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700/60 shadow-xl flex flex-col justify-between h-[420px]">
-                <div class="flex items-center justify-between mb-2">
-                    <div>
-                        <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-area text-blue-400"></i> Hidrograma de Caudal
+            <!-- River Channel Cross-Section & Dynamic Particle Animation (5 cols) -->
+            <div class="lg:col-span-5 glass-panel p-5 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-water text-cyan-400"></i> SecciÃ³n Transversal y Flujo
                         </h2>
-                        <p class="text-xs text-slate-400">Curva continua de caudal vs tiempo transcurrido</p>
+                        <span class="text-xs bg-slate-800 text-cyan-300 px-2 py-0.5 rounded border border-slate-700">Canal RÃ­o Cauca</span>
                     </div>
-                    <div class="flex items-center space-x-3 text-xs text-slate-400">
-                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> SimulaciÃ³n</span>
-                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> Datos Medidos</span>
+                    <p class="text-xs text-slate-400 mb-3">SimulaciÃ³n visual de la lÃ¡mina de agua y partÃ­culas a velocidad $V(t)$</p>
+
+                    <div class="relative w-full h-[280px] bg-slate-900/90 rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="riverSimulationCanvas" class="w-full h-full block"></canvas>
+                        
+                        <!-- Overlay Water Metrics -->
+                        <div class="absolute bottom-2 left-2 right-2 flex justify-between items-center text-[11px] bg-slate-950/80 p-2 rounded-lg backdrop-blur border border-slate-800">
+                            <span class="text-slate-300">Ancho ($B$): <strong class="text-white">90.0 m</strong></span>
+                            <span class="text-slate-300">Ãrea Mojada ($A$): <strong id="canvasArea" class="text-cyan-400">-- mÂ²</strong></span>
+                            <span class="text-slate-300">PerÃ­metro ($P$): <strong id="canvasPerimeter" class="text-emerald-400">-- m</strong></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Canvas Chart -->
-                <div class="relative flex-1 w-full h-full min-h-0">
-                    <canvas id="hydroChart"></canvas>
+                <div class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-slate-900/50 p-2 rounded-lg border border-slate-800/80">
+                        <span class="text-slate-400 block">Pendiente de Cauce ($S$):</span>
+                        <span class="text-slate-200 font-bold font-mono">0.0003 m/m</span>
+                    </div>
+                    <div class="bg-slate-900/50 p-2 rounded-lg border border-slate-800/80">
+                        <span class="text-slate-400 block">Rugosidad Manning ($n$):</span>
+                        <span class="text-slate-200 font-bold font-mono">0.032 (Grava/Canto)</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Editable Data Points Table & Add Point Tool -->
-            <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700/60 space-y-4">
-                <div class="flex items-center justify-between">
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Raw Data & Interpolation Table (7 cols) -->
+            <div class="lg:col-span-7 glass-panel p-5 rounded-2xl">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-table-cells text-emerald-400"></i> Puntos Medidos de Campo
-                        </h3>
-                        <p class="text-xs text-slate-400">Puedes modificar valores o agregar nuevos puntos para recalcular la simulaciÃ³n.</p>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-table text-amber-400"></i> Registros Observados e IntegraciÃ³n Trapezoidal
+                        </h2>
+                        <p class="text-xs text-slate-400">Tabla de datos suministrados con cÃ¡lculo del volumen por tramo</p>
                     </div>
-                    <button id="btnAddRow" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
-                        <i class="fa-solid fa-plus"></i> Agregar Punto
+                    <button id="exportCsvBtn" class="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-csv text-emerald-400"></i> Exportar CSV
                     </button>
                 </div>
 
-                <!-- Table -->
-                <div class="overflow-x-auto rounded-lg border border-slate-700/80">
-                    <table class="w-full text-xs text-left text-slate-300">
-                        <thead class="text-xs text-slate-400 uppercase bg-slate-900/80 border-b border-slate-700">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
                             <tr>
-                                <th scope="col" class="px-4 py-2.5">#</th>
-                                <th scope="col" class="px-4 py-2.5">Tiempo t (horas)</th>
-                                <th scope="col" class="px-4 py-2.5">Caudal Q (mÂ³/s)</th>
-                                <th scope="col" class="px-4 py-2.5 text-center">Acciones</th>
+                                <th class="p-3">Tiempo $t$ (h)</th>
+                                <th class="p-3">Caudal $Q$ (mÂ³/s)</th>
+                                <th class="p-3">$\Delta t$ (s)</th>
+                                <th class="p-3">Volumen Tramo ($m^3$)</th>
+                                <th class="p-3">Volumen Acum. ($Hm^3$)</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody" class="divide-y divide-slate-700/60 bg-slate-800/40 font-mono">
-                            <!-- Populated dynamically -->
+                        <tbody id="dataTableBody" class="divide-y divide-slate-800/60 font-mono">
+                            <!-- Populated dynamically via JS -->
                         </tbody>
+                        <tfoot class="bg-slate-900/90 font-bold text-white border-t-2 border-slate-700">
+                            <tr>
+                                <td class="p-3">Total / Resumen</td>
+                                <td class="p-3 text-blue-400" id="tableAvgQ">-- mÂ³/s</td>
+                                <td class="p-3">129,600 s</td>
+                                <td class="p-3 text-purple-400" id="tableTotalM3">-- mÂ³</td>
+                                <td class="p-3 text-emerald-400" id="tableTotalHm3">-- HmÂ³</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
 
-        </div>
+            <!-- Hydrological Context & Manning Hydraulic Parameters (5 cols) -->
+            <div class="lg:col-span-5 glass-panel p-5 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> ParÃ¡metros del Canal del RÃ­o
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-4">Ajuste interactivo de la geometrÃ­a hidrÃ¡ulica (EcuaciÃ³n de Manning)</p>
+
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <div class="flex justify-between mb-1 text-slate-300">
+                                <span>Ancho de Solera / Cauce ($B$):</span>
+                                <span id="paramBVal" class="font-bold text-blue-400">90 m</span>
+                            </div>
+                            <input type="range" id="paramB" min="50" max="150" value="90" step="5" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1 text-slate-300">
+                                <span>Coeficiente de Rugosidad ($n$):</span>
+                                <span id="paramNVal" class="font-bold text-emerald-400">0.032</span>
+                            </div>
+                            <input type="range" id="paramN" min="0.020" max="0.065" value="0.032" step="0.001" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1 text-slate-300">
+                                <span>Pendiente Longitudinal ($S$):</span>
+                                <span id="paramSVal" class="font-bold text-amber-400">0.0003 m/m</span>
+                            </div>
+                            <input type="range" id="paramS" min="0.0001" max="0.0010" value="0.0003" step="0.00005" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 text-xs space-y-2">
+                    <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-map-pin text-red-400"></i> Contexto HidrolÃ³gico RÃ­o Cauca
+                    </div>
+                    <p class="text-slate-400 leading-relaxed text-[11.5px]">
+                        Los caudales (~1100 a 1265 mÂ³/s) corresponden a un rÃ©gimen medio-alto en el valle geogrÃ¡fico del RÃ­o Cauca (Cali / Juanchito). Un volumen acumulado superior a <strong>150 HmÂ³</strong> en 36 horas refleja la alta capacidad reguladora de la cuenca.
+                    </p>
+                </div>
+            </div>
+
+        </section>
 
     </main>
 
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-slate-100 text-xs px-4 py-3 rounded-xl border border-slate-700 shadow-2xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2 z-50">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-base" id="toastIcon"></i>
-        <span id="toastMsg">SimulaciÃ³n actualizada</span>
-    </div>
-
-    <footer class="bg-slate-950 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-        Simulador HidrolÃ³gico â€¢ CÃ¡lculo numÃ©rico con PCHIP e IntegraciÃ³n Trapezoidal
-    </footer>
-
     <script>
-        // Initial dataset provided by user
-        const DEFAULT_DATA = [
-            { t: 0, q: 1162.18 },
-            { t: 6, q: 1173.05 },
+        // Provided dataset
+        const rawData = [
+            { t: 0,  q: 1162.18 },
+            { t: 6,  q: 1173.05 },
             { t: 12, q: 1108.83 },
             { t: 24, q: 1213.33 },
             { t: 30, q: 1265.22 },
             { t: 36, q: 1228.10 }
         ];
 
-        let points = JSON.parse(JSON.stringify(DEFAULT_DATA));
-        let activeMethod = 'pchip'; // 'pchip' or 'linear'
+        // Hydraulic parameters defaults
+        let hydraulicParams = {
+            B: 90,     // Channel width (meters)
+            n: 0.032,  // Manning roughness
+            S: 0.0003  // Longitudinal slope
+        };
+
+        let currentScenario = 'baseline';
         let currentTime = 0;
         let isPlaying = false;
-        let playbackSpeed = 3; // hours per real-time second
-        let animFrameId = null;
-        let lastTimestamp = null;
+        let animationFrameId = null;
+        let playbackSpeed = 1.0; // hours per step multiplier
 
-        // Chart instance
-        let chartInstance = null;
-
-        // Visual Particles state
+        // Particles for canvas simulation
         let particles = [];
-        const canvasParticles = document.getElementById('canvasParticles');
-        const ctxParticles = canvasParticles.getContext('2d');
+        const numParticles = 80;
 
-        /**
-         * Monotone Cubic Hermite Interpolation (PCHIP)
-         */
-        function pchipInterpolate(xVal, dataPoints) {
-            const n = dataPoints.length;
-            if (n === 0) return 0;
-            if (n === 1) return dataPoints[0].q;
+        function getActiveData() {
+            return rawData.map(d => {
+                let factor = 1.0;
+                let offset = 0;
+                if (currentScenario === 'flood') factor = 1.25;
+                if (currentScenario === 'drought') factor = 0.85;
+                
+                let qVal = d.q * factor;
+                
+                if (currentScenario === 'pulse') {
+                    // Add a synthetic pulse peaked at t=18
+                    const pulse = 250 * Math.exp(-Math.pow(d.t - 18, 2) / 36);
+                    qVal += pulse;
+                }
+                return { t: d.t, q: qVal };
+            });
+        }
 
-            // Sort points by t
-            const sorted = [...dataPoints].sort((a, b) => a.t - b.t);
+        // Hermite Monotone Cubic Spline to avoid overshoots
+        function createSpline(data) {
+            const x = data.map(d => d.t);
+            const y = data.map(d => d.q);
+            const n = x.length;
 
-            if (xVal <= sorted[0].t) return sorted[0].q;
-            if (xVal >= sorted[n - 1].t) return sorted[n - 1].q;
+            const dx = [];
+            const dy = [];
+            const ms = [];
 
-            // Compute secants
-            const h = [];
-            const delta = [];
             for (let i = 0; i < n - 1; i++) {
-                h[i] = sorted[i + 1].t - sorted[i].t;
-                delta[i] = (sorted[i + 1].q - sorted[i].q) / h[i];
+                dx.push(x[i + 1] - x[i]);
+                dy.push(y[i + 1] - y[i]);
+                ms.push(dy[i] / dx[i]);
             }
 
-            // Compute slopes d_i
-            const d = new Array(n);
-
-            // Internal points
-            for (let i = 1; i < n - 1; i++) {
-                if (delta[i - 1] * delta[i] <= 0) {
-                    d[i] = 0;
+            const c1s = [ms[0]];
+            for (let i = 0; i < ms.length - 1; i++) {
+                const m = ms[i];
+                const nextM = ms[i + 1];
+                if (m * nextM <= 0) {
+                    c1s.push(0);
                 } else {
-                    const w1 = 2 * h[i] + h[i - 1];
-                    const w2 = h[i] + 2 * h[i - 1];
-                    d[i] = (w1 + w2) / (w1 / delta[i - 1] + w2 / delta[i]);
+                    const commondx = dx[i] + dx[i + 1];
+                    c1s.push((3 * commondx) / ((commondx + dx[i + 1]) / m + (commondx + dx[i]) / nextM));
                 }
             }
+            c1s.push(ms[ms.length - 1]);
 
-            // Endpoints
-            d[0] = pchipEndSlope(h[0], h[1], delta[0], delta[1]);
-            d[n - 1] = pchipEndSlope(h[n - 2], h[n - 3], delta[n - 2], delta[n - 3]);
+            return function(tVal) {
+                if (tVal <= x[0]) return y[0];
+                if (tVal >= x[n - 1]) return y[n - 1];
 
-            // Find interval for xVal
-            let idx = 0;
-            for (let i = 0; i < n - 1; i++) {
-                if (xVal >= sorted[i].t && xVal <= sorted[i + 1].t) {
-                    idx = i;
-                    break;
+                let i = 0;
+                while (i < x.length - 1 && x[i + 1] < tVal) {
+                    i++;
                 }
+
+                const h = dx[i];
+                const diff = tVal - x[i];
+                const t = diff / h;
+                const t2 = t * t;
+                const t3 = t2 * t;
+
+                const h00 = 2 * t3 - 3 * t2 + 1;
+                const h10 = t3 - 2 * t2 + t;
+                const h01 = -2 * t3 + 3 * t2;
+                const h11 = t3 - t2;
+
+                return h00 * y[i] + h10 * h * c1s[i] + h01 * y[i + 1] + h11 * h * c1s[i + 1];
+            };
+        }
+
+        // Solves Manning Equation: Q = (1/n) * A * R^(2/3) * S^(1/2) for rectangular channel
+        // A = B * h, P = B + 2h, R = (B * h) / (B + 2h)
+        function solveDepth(Q, B, n, S) {
+            let h = 3.0; // initial guess
+            const k = (n * Q) / Math.sqrt(S); // A * R^(2/3) = k
+
+            // Newton-Raphson iteration
+            for (let iter = 0; iter < 15; iter++) {
+                const A = B * h;
+                const P = B + 2 * h;
+                const R = A / P;
+                const R_23 = Math.pow(R, 2/3);
+                
+                const f = A * R_23 - k;
+                if (Math.abs(f) < 1e-4) break;
+
+                // Derivative df/dh
+                const dA = B;
+                const dP = 2;
+                const dR = (B * P - A * dP) / (P * P);
+                const df = dA * R_23 + A * (2/3) * Math.pow(R, -1/3) * dR;
+
+                h = h - f / df;
+                if (h <= 0.1) h = 0.1;
+            }
+            return h;
+        }
+
+        function calculateCumulativeVolume(tTarget) {
+            const activeData = getActiveData();
+            const spline = createSpline(activeData);
+
+            let totalVolSeconds = 0; // mÂ³
+            const step = 0.05; // small time steps in hours
+
+            for (let t = 0; t < tTarget; t += step) {
+                const q1 = spline(t);
+                const q2 = spline(Math.min(t + step, tTarget));
+                const dtSeconds = (Math.min(t + step, tTarget) - t) * 3600;
+                totalVolSeconds += 0.5 * (q1 + q2) * dtSeconds;
             }
 
-            // Hermite Cubic Evaluation
-            const x0 = sorted[idx].t;
-            const y0 = sorted[idx].q;
-            const y1 = sorted[idx + 1].q;
-            const h_i = h[idx];
-            const t_norm = (xVal - x0) / h_i;
-            const t2 = t_norm * t_norm;
-            const t3 = t2 * t_norm;
-
-            const h00 = 2 * t3 - 3 * t2 + 1;
-            const h10 = t3 - 2 * t2 + t_norm;
-            const h01 = -2 * t3 + 3 * t2;
-            const h11 = t3 - t2;
-
-            return h00 * y0 + h10 * h_i * d[idx] + h01 * y1 + h11 * h_i * d[idx + 1];
+            return totalVolSeconds; // in mÂ³
         }
 
-        function pchipEndSlope(h1, h2, del1, del2) {
-            let d = ((2 * h1 + h2) * del1 - h1 * del2) / (h1 + h2);
-            if (d * del1 < 0) d = 0;
-            else if ((del1 * del2 < 0) && (Math.abs(d) > Math.abs(3 * del1))) d = 3 * del1;
-            return d;
-        }
-
-        /**
-         * Linear Interpolation Fallback
-         */
-        function linearInterpolate(xVal, dataPoints) {
-            const sorted = [...dataPoints].sort((a, b) => a.t - b.t);
-            const n = sorted.length;
-            if (xVal <= sorted[0].t) return sorted[0].q;
-            if (xVal >= sorted[n - 1].t) return sorted[n - 1].q;
-
-            for (let i = 0; i < n - 1; i++) {
-                if (xVal >= sorted[i].t && xVal <= sorted[i + 1].t) {
-                    const ratio = (xVal - sorted[i].t) / (sorted[i + 1].t - sorted[i].t);
-                    return sorted[i].q + ratio * (sorted[i + 1].q - sorted[i].q);
-                }
-            }
-            return sorted[0].q;
-        }
-
-        /**
-         * Generic evaluate flow at time t
-         */
-        function getFlowAtTime(tVal) {
-            return activeMethod === 'pchip' 
-                ? pchipInterpolate(tVal, points) 
-                : linearInterpolate(tVal, points);
-        }
-
-        /**
-         * Calculate integrated accumulated volume up to time t (in mÂ³)
-         */
-        function calculateVolumeM3(targetTime) {
-            if (targetTime <= 0) return 0;
-            const steps = 300;
-            const dt = targetTime / steps; // hours
-            let integral = 0;
-
-            let prevQ = getFlowAtTime(0);
-            for (let i = 1; i <= steps; i++) {
-                const t_curr = i * dt;
-                const currQ = getFlowAtTime(t_curr);
-                // Trapezoid rule
-                integral += (prevQ + currQ) / 2 * (dt * 3600); // 3600s in an hour
-                prevQ = currQ;
-            }
-            return integral;
-        }
+        let hydroChart = null;
 
         function initChart() {
-            const ctx = document.getElementById('hydroChart').getContext('2d');
-
-            // Generate fine simulation series
-            const simSeries = [];
-            const maxT = Math.max(...points.map(p => p.t));
-            const samples = 200;
-            for (let i = 0; i <= samples; i++) {
-                const t_step = (maxT * i) / samples;
-                simSeries.push({ x: t_step, y: getFlowAtTime(t_step) });
+            const ctx = document.getElementById('hydrographCanvas').getContext('2d');
+            
+            // Build dense curve points for smooth rendering
+            const activeData = getActiveData();
+            const spline = createSpline(activeData);
+            const densePoints = [];
+            for (let t = 0; t <= 36; t += 0.2) {
+                densePoints.push({ x: Number(t.toFixed(1)), y: Number(spline(t).toFixed(2)) });
             }
 
-            chartInstance = new Chart(ctx, {
+            const dataPoints = activeData.map(d => ({ x: d.t, y: d.q }));
+
+            hydroChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     datasets: [
                         {
-                            label: 'Caudal Simulado (mÂ³/s)',
-                            data: simSeries,
-                            borderColor: '#3b82f6',
+                            label: 'Caudal Interpolado Q(t)',
+                            data: densePoints,
+                            borderColor: '#38bdf8',
                             borderWidth: 3,
                             fill: true,
-                            backgroundColor: 'rgba(59, 130, 246, 0.12)',
-                            tension: 0,
-                            pointRadius: 0,
-                            pointHitRadius: 10
+                            backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                            tension: 0.4,
+                            pointRadius: 0
                         },
                         {
-                            label: 'Datos de Campo',
-                            data: points.map(p => ({ x: p.t, y: p.q })),
-                            borderColor: '#ef4444',
-                            backgroundColor: '#ef4444',
+                            label: 'Datos Observados',
+                            data: dataPoints,
+                            borderColor: '#f59e0b',
+                            backgroundColor: '#fbbf24',
                             borderWidth: 0,
                             pointRadius: 6,
                             pointHoverRadius: 8,
                             showLine: false
                         },
                         {
-                            label: 'PosiciÃ³n Actual t',
-                            data: [{ x: currentTime, y: getFlowAtTime(currentTime) }],
-                            borderColor: '#38bdf8',
-                            backgroundColor: '#0284c7',
-                            borderWidth: 2,
-                            pointRadius: 8,
-                            pointStyle: 'circle',
+                            label: 'Tiempo Actual (t)',
+                            data: [{ x: 0, y: spline(0) }],
+                            borderColor: '#ef4444',
+                            backgroundColor: '#ef4444',
+                            pointRadius: 7,
+                            pointStyle: 'rectRot',
                             showLine: false
                         }
                     ]
@@ -511,37 +530,47 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: false,
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: false
+                    },
                     scales: {
                         x: {
                             type: 'linear',
                             title: {
                                 display: true,
-                                text: 'Tiempo transcurrido t (horas)',
+                                text: 'Tiempo t (Horas)',
                                 color: '#94a3b8',
-                                font: { size: 12, weight: '600' }
+                                font: { size: 11, weight: 'bold' }
                             },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#cbd5e1', stepSize: 6 },
                             min: 0,
-                            max: maxT
+                            max: 36
                         },
                         y: {
                             title: {
                                 display: true,
                                 text: 'Caudal Q (mÂ³/s)',
                                 color: '#94a3b8',
-                                font: { size: 12, weight: '600' }
+                                font: { size: 11, weight: 'bold' }
                             },
-                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
-                            ticks: { color: '#94a3b8' }
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#cbd5e1' }
                         }
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#38bdf8',
+                            bodyColor: '#f8fafc',
+                            borderColor: '#334155',
+                            borderWidth: 1,
                             callbacks: {
-                                label: (context) => ` Q: ${context.parsed.y.toFixed(2)} mÂ³/s (t: ${context.parsed.x.toFixed(2)} h)`
+                                label: function(context) {
+                                    return `Caudal: ${context.parsed.y.toFixed(2)} mÂ³/s en t = ${context.parsed.x} h`;
+                                }
                             }
                         }
                     }
@@ -549,336 +578,363 @@
             });
         }
 
+        function updateChartData() {
+            if (!hydroChart) return;
+            const activeData = getActiveData();
+            const spline = createSpline(activeData);
+
+            const densePoints = [];
+            for (let t = 0; t <= 36; t += 0.2) {
+                densePoints.push({ x: Number(t.toFixed(1)), y: Number(spline(t).toFixed(2)) });
+            }
+            const dataPoints = activeData.map(d => ({ x: d.t, y: d.q }));
+
+            hydroChart.data.datasets[0].data = densePoints;
+            hydroChart.data.datasets[1].data = dataPoints;
+            hydroChart.data.datasets[2].data = [{ x: currentTime, y: spline(currentTime) }];
+            hydroChart.update('none');
+        }
+
+        const simCanvas = document.getElementById('riverSimulationCanvas');
+        const simCtx = simCanvas.getContext('2d');
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: Math.random(),
+                    y: Math.random(),
+                    size: Math.random() * 3 + 1.5,
+                    speedFactor: Math.random() * 0.5 + 0.75,
+                    opacity: Math.random() * 0.5 + 0.3
+                });
+            }
+        }
+
+        function resizeCanvas() {
+            const rect = simCanvas.getBoundingClientRect();
+            simCanvas.width = rect.width * window.devicePixelRatio;
+            simCanvas.height = rect.height * window.devicePixelRatio;
+            simCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        function drawRiverSimulation(Q, depth, velocity) {
+            const w = simCanvas.clientWidth;
+            const h = simCanvas.clientHeight;
+
+            simCtx.clearRect(0, 0, w, h);
+
+            // Channel Bed profile (Cross section cut)
+            const bedMarginLeft = w * 0.1;
+            const bedMarginRight = w * 0.9;
+            const bedBottom = h - 35;
+            const bedTop = 40;
+
+            // Compute depth visually (scale 0-6m depth to canvas pixels)
+            const maxDepthMeters = 6.0;
+            const pixelDepth = Math.min((depth / maxDepthMeters) * (bedBottom - bedTop - 30), bedBottom - bedTop - 10);
+            const waterSurfaceY = bedBottom - pixelDepth;
+
+            // Draw River Channel Cross-Section
+            simCtx.beginPath();
+            simCtx.moveTo(bedMarginLeft - 20, bedTop);
+            simCtx.lineTo(bedMarginLeft, bedBottom);
+            simCtx.lineTo(bedMarginRight, bedBottom);
+            simCtx.lineTo(bedMarginRight + 20, bedTop);
+            simCtx.lineTo(w, bedTop);
+            simCtx.lineTo(w, h);
+            simCtx.lineTo(0, h);
+            simCtx.lineTo(0, bedTop);
+            simCtx.closePath();
+
+            simCtx.fillStyle = '#1e293b';
+            simCtx.fill();
+            simCtx.strokeStyle = '#475569';
+            simCtx.lineWidth = 2;
+            simCtx.stroke();
+
+            // Draw Water Mass
+            const grad = simCtx.createLinearGradient(0, waterSurfaceY, 0, bedBottom);
+            grad.addColorStop(0, 'rgba(14, 165, 233, 0.85)');
+            grad.addColorStop(1, 'rgba(3, 105, 161, 0.95)');
+
+            simCtx.beginPath();
+            simCtx.moveTo(bedMarginLeft, bedBottom);
+            simCtx.lineTo(bedMarginLeft - (pixelDepth * 0.3), waterSurfaceY);
+            
+            // Dynamic Wave Effect on surface
+            const waveTime = Date.now() * 0.003 * (velocity / 2);
+            for (let x = bedMarginLeft - (pixelDepth * 0.3); x <= bedMarginRight + (pixelDepth * 0.3); x += 10) {
+                const waveY = waterSurfaceY + Math.sin(x * 0.05 + waveTime) * 2;
+                simCtx.lineTo(x, waveY);
+            }
+
+            simCtx.lineTo(bedMarginRight + (pixelDepth * 0.3), waterSurfaceY);
+            simCtx.lineTo(bedMarginRight, bedBottom);
+            simCtx.closePath();
+
+            simCtx.fillStyle = grad;
+            simCtx.fill();
+
+            // Draw Floating Particles / Flow Vectors
+            simCtx.save();
+            // Clip to water area
+            simCtx.clip();
+
+            particles.forEach(p => {
+                // Particle motion proportional to velocity V
+                p.x += (velocity * 0.002 * p.speedFactor);
+                if (p.x > 1.0) p.x = 0.0;
+
+                const px = bedMarginLeft + p.x * (bedMarginRight - bedMarginLeft);
+                const py = waterSurfaceY + p.y * (bedBottom - waterSurfaceY - 5);
+
+                simCtx.fillStyle = `rgba(224, 242, 254, ${p.opacity})`;
+                simCtx.beginPath();
+                simCtx.arc(px, py, p.size, 0, Math.PI * 2);
+                simCtx.fill();
+
+                // Small velocity streak line
+                simCtx.strokeStyle = `rgba(186, 230, 253, ${p.opacity * 0.6})`;
+                simCtx.lineWidth = 1;
+                simCtx.beginPath();
+                simCtx.moveTo(px, py);
+                simCtx.lineTo(px - velocity * 4 * p.speedFactor, py);
+                simCtx.stroke();
+            });
+
+            simCtx.restore();
+
+            // Draw Scale Gauge on left side
+            simCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            simCtx.lineWidth = 1;
+            simCtx.beginPath();
+            simCtx.moveTo(bedMarginLeft - 35, bedBottom);
+            simCtx.lineTo(bedMarginLeft - 35, bedBottom - (5 / maxDepthMeters) * (bedBottom - bedTop - 30));
+            simCtx.stroke();
+
+            simCtx.fillStyle = '#94a3b8';
+            simCtx.font = '10px Inter';
+            for (let m = 0; m <= 5; m++) {
+                const tickY = bedBottom - (m / maxDepthMeters) * (bedBottom - bedTop - 30);
+                simCtx.fillText(`${m}m`, bedMarginLeft - 58, tickY + 3);
+            }
+        }
+
         function updateUI() {
-            const currentQ = getFlowAtTime(currentTime);
-            const volM3 = calculateVolumeM3(currentTime);
+            const activeData = getActiveData();
+            const spline = createSpline(activeData);
+
+            // Instant Q
+            const qNow = spline(currentTime);
+            const depth = solveDepth(qNow, hydraulicParams.B, hydraulicParams.n, hydraulicParams.S);
+            const area = hydraulicParams.B * depth;
+            const perimeter = hydraulicParams.B + 2 * depth;
+            const velocity = qNow / area;
+
+            // Trend dQ/dt (approx numerical derivative)
+            const dtStep = 0.1;
+            const qPrev = spline(Math.max(0, currentTime - dtStep));
+            const dqdt = (qNow - qPrev) / dtStep; // mÂ³/s por hora
+
+            // Volume accumulated up to currentTime
+            const volM3 = calculateCumulativeVolume(currentTime);
             const volHm3 = volM3 / 1e6;
 
-            // Compute global max Q for full dataset
-            let maxQ = 0;
-            let maxQTime = 0;
-            const maxT = Math.max(...points.map(p => p.t));
-            for (let t = 0; t <= maxT; t += 0.1) {
-                const q = getFlowAtTime(t);
-                if (q > maxQ) {
-                    maxQ = q;
-                    maxQTime = t;
-                }
-            }
-
-            const totalVolM3 = calculateVolumeM3(maxT);
-            const totalVolHm3 = totalVolM3 / 1e6;
-
-            // DOM Updates
-            document.getElementById('kpiCurrentQ').innerText = currentQ.toFixed(2);
-            document.getElementById('kpiTimeLabel').innerText = `En t = ${currentTime.toFixed(2)} h`;
-            document.getElementById('kpiVolumeHm').innerText = volHm3.toFixed(2);
-            document.getElementById('kpiVolumeM3').innerText = `${Math.round(volM3).toLocaleString()} mÂ³ escurridos`;
-            
-            document.getElementById('kpiMaxQ').innerText = maxQ.toFixed(2);
-            document.getElementById('kpiMaxQTime').innerText = `Registrado a las ${maxQTime.toFixed(1)} h`;
-            document.getElementById('kpiTotalVolume').innerText = totalVolHm3.toFixed(2);
-
-            // Slider & Time Badge
+            // Update DOM Cards
+            document.getElementById('kpiQ').innerText = qNow.toFixed(2);
+            document.getElementById('kpiDepth').innerText = depth.toFixed(2);
+            document.getElementById('kpiVelocity').innerText = velocity.toFixed(2);
+            document.getElementById('kpiVolume').innerText = volHm3.toFixed(2);
+            document.getElementById('currentTimeDisplay').innerText = currentTime.toFixed(1) + ' h';
             document.getElementById('timeSlider').value = currentTime;
-            const hrs = Math.floor(currentTime);
-            const mins = Math.round((currentTime - hrs) * 60);
-            const strHrs = String(hrs).padStart(2, '0');
-            const strMins = String(mins).padStart(2, '0');
-            document.getElementById('timeBadge').innerText = `${strHrs}:${strMins} h (t = ${currentTime.toFixed(2)} h)`;
 
-            // Visual channel water height (Normalized between 1000 m3/s and 1350 m3/s)
-            const minScale = 1000;
-            const maxScale = 1320;
-            const percentage = Math.min(100, Math.max(15, ((currentQ - minScale) / (maxScale - minScale)) * 100));
-            document.getElementById('waterBody').style.height = `${percentage}%`;
-            document.getElementById('waterDepthText').innerText = `Nivel Canal: ${Math.round(percentage)}%`;
-            document.getElementById('visualQVal').innerText = currentQ.toFixed(2);
-
-            // Update Chart
-            if (chartInstance) {
-                const simSeries = [];
-                const samples = 200;
-                for (let i = 0; i <= samples; i++) {
-                    const t_step = (maxT * i) / samples;
-                    simSeries.push({ x: t_step, y: getFlowAtTime(t_step) });
-                }
-
-                chartInstance.data.datasets[0].data = simSeries;
-                chartInstance.data.datasets[1].data = points.map(p => ({ x: p.t, y: p.q }));
-                chartInstance.data.datasets[2].data = [{ x: currentTime, y: currentQ }];
-                chartInstance.options.scales.x.max = maxT;
-                chartInstance.update('none');
+            // Trend Badge
+            const qTrendBadge = document.getElementById('qTrendBadge');
+            if (Math.abs(dqdt) < 0.5) {
+                qTrendBadge.className = "px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono";
+                qTrendBadge.innerHTML = `<i class="fa-solid fa-minus text-slate-400 mr-1"></i> Estacionario`;
+            } else if (dqdt > 0) {
+                qTrendBadge.className = "px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/20";
+                qTrendBadge.innerHTML = `<i class="fa-solid fa-arrow-trend-up text-emerald-400 mr-1"></i>+${dqdt.toFixed(1)} mÂ³/sÂ·h`;
+            } else {
+                qTrendBadge.className = "px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono border border-amber-500/20";
+                qTrendBadge.innerHTML = `<i class="fa-solid fa-arrow-trend-down text-amber-400 mr-1"></i>${dqdt.toFixed(1)} mÂ³/sÂ·h`;
             }
+
+            // Canvas Overlay Metrics
+            document.getElementById('canvasArea').innerText = `${area.toFixed(1)} mÂ²`;
+            document.getElementById('canvasPerimeter').innerText = `${perimeter.toFixed(1)} m`;
+
+            // Global Statistics
+            const qVals = activeData.map(d => d.q);
+            const qMin = Math.min(...qVals);
+            const qMax = Math.max(...qVals);
+            const qAvg = qVals.reduce((a, b) => a + b, 0) / qVals.length;
+            const totalVol36 = calculateCumulativeVolume(36) / 1e6;
+
+            document.getElementById('statQMin').innerText = `${qMin.toFixed(2)} mÂ³/s`;
+            document.getElementById('statQMax').innerText = `${qMax.toFixed(2)} mÂ³/s`;
+            document.getElementById('statQAvg').innerText = `${qAvg.toFixed(2)} mÂ³/s`;
+            document.getElementById('statVolTotal').innerText = `${totalVol36.toFixed(2)} HmÂ³`;
+
+            // Chart Indicator Update
+            if (hydroChart) {
+                hydroChart.data.datasets[2].data = [{ x: currentTime, y: qNow }];
+                hydroChart.update('none');
+            }
+
+            // Redraw River Canvas
+            drawRiverSimulation(qNow, depth, velocity);
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
+        function populateTable() {
+            const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
 
-            // Sort points by t
-            points.sort((a, b) => a.t - b.t);
+            const activeData = getActiveData();
+            let cumVol = 0;
+            let sumQ = 0;
 
-            points.forEach((pt, index) => {
+            for (let i = 0; i < activeData.length; i++) {
+                const d = activeData[i];
+                sumQ += d.q;
+
+                let dtSec = 0;
+                let segVol = 0;
+
+                if (i > 0) {
+                    const prev = activeData[i - 1];
+                    const dtHours = d.t - prev.t;
+                    dtSec = dtHours * 3600;
+                    segVol = 0.5 * (prev.q + d.q) * dtSec; // Trapezoid
+                    cumVol += segVol;
+                }
+
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-700/30 transition';
-
+                tr.className = "hover:bg-slate-800/40 transition";
                 tr.innerHTML = `
-                    <td class="px-4 py-2 text-slate-400">${index + 1}</td>
-                    <td class="px-4 py-2">
-                        <input type="number" step="0.1" min="0" value="${pt.t}" data-idx="${index}" data-type="t" 
-                            class="input-table w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500">
-                    </td>
-                    <td class="px-4 py-2">
-                        <input type="number" step="0.01" min="0" value="${pt.q}" data-idx="${index}" data-type="q" 
-                            class="input-table w-28 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-blue-400 font-bold focus:outline-none focus:border-blue-500">
-                    </td>
-                    <td class="px-4 py-2 text-center">
-                        <button data-idx="${index}" class="btnDeleteRow text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-950/40 transition" title="Eliminar punto">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
+                    <td class="p-3 font-bold text-white">${d.t.toFixed(0)} h</td>
+                    <td class="p-3 text-blue-400 font-bold">${d.q.toFixed(2)}</td>
+                    <td class="p-3 text-slate-400">${dtSec > 0 ? dtSec.toLocaleString() : '0'} s</td>
+                    <td class="p-3 text-slate-300">${segVol > 0 ? segVol.toLocaleString(undefined, {maximumFractionDigits: 0}) : '-'}</td>
+                    <td class="p-3 text-emerald-400 font-bold">${(cumVol / 1e6).toFixed(2)} HmÂ³</td>
                 `;
                 tbody.appendChild(tr);
-            });
+            }
 
-            // Update range of time slider
-            const maxT = Math.max(...points.map(p => p.t));
-            document.getElementById('timeSlider').max = maxT;
-
-            // Attach input change listeners
-            document.querySelectorAll('.input-table').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const idx = parseInt(e.target.dataset.idx);
-                    const type = e.target.dataset.type;
-                    const val = parseFloat(e.target.value) || 0;
-                    points[idx][type] = val;
-                    renderTable();
-                    updateUI();
-                    showToast('Datos de campo actualizados');
-                });
-            });
-
-            document.querySelectorAll('.btnDeleteRow').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    if (points.length <= 2) {
-                        showToast('Se requieren al menos 2 puntos para interpolar', 'warning');
-                        return;
-                    }
-                    const idx = parseInt(btn.closest('button').dataset.idx);
-                    points.splice(idx, 1);
-                    renderTable();
-                    updateUI();
-                    showToast('Punto eliminado');
-                });
-            });
+            const avgQ = sumQ / activeData.length;
+            const totalVol36m3 = calculateCumulativeVolume(36);
+            
+            document.getElementById('tableAvgQ').innerText = `${avgQ.toFixed(2)} mÂ³/s`;
+            document.getElementById('tableTotalM3').innerText = `${Math.round(totalVol36m3).toLocaleString()} mÂ³`;
+            document.getElementById('tableTotalHm3').innerText = `${(totalVol36m3 / 1e6).toFixed(2)} HmÂ³`;
         }
 
-        function initParticleCanvas() {
-            function resizeCanvas() {
-                canvasParticles.width = canvasParticles.parentElement.clientWidth;
-                canvasParticles.height = canvasParticles.parentElement.clientHeight;
-            }
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-
-            // Seed particles
-            for (let i = 0; i < 35; i++) {
-                particles.push({
-                    x: Math.random() * canvasParticles.width,
-                    y: Math.random() * canvasParticles.height,
-                    size: Math.random() * 2 + 1,
-                    speedMult: Math.random() * 0.5 + 0.8
-                });
-            }
-
-            function animateParticles() {
-                ctxParticles.clearRect(0, 0, canvasParticles.width, canvasParticles.height);
-                
-                const currentQ = getFlowAtTime(currentTime);
-                // Speed depends on flow rate Q
-                const flowSpeed = (currentQ / 300) * 0.8;
-
-                ctxParticles.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                particles.forEach(p => {
-                    p.x += flowSpeed * p.speedMult;
-                    if (p.x > canvasParticles.width) {
-                        p.x = 0;
-                        p.y = Math.random() * canvasParticles.height;
-                    }
-                    ctxParticles.beginPath();
-                    ctxParticles.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctxParticles.fill();
-                });
-
-                requestAnimationFrame(animateParticles);
-            }
-            animateParticles();
-        }
-
-        function playLoop(timestamp) {
-            if (!lastTimestamp) lastTimestamp = timestamp;
-            const dt = (timestamp - lastTimestamp) / 1000; // seconds
-            lastTimestamp = timestamp;
-
-            if (isPlaying) {
-                const maxT = Math.max(...points.map(p => p.t));
-                currentTime += dt * playbackSpeed;
-                if (currentTime >= maxT) {
-                    currentTime = maxT;
-                    isPlaying = false;
-                    updatePlayButtonIcon();
-                }
-                updateUI();
-                animFrameId = requestAnimationFrame(playLoop);
-            }
-        }
-
-        function updatePlayButtonIcon() {
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const playBtn = document.getElementById('playBtn');
             const playIcon = document.getElementById('playIcon');
+            const playText = document.getElementById('playText');
+
             if (isPlaying) {
                 playIcon.className = 'fa-solid fa-pause';
+                playText.innerText = 'Pausar';
+                playBtn.className = "px-5 py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-semibold rounded-xl transition flex items-center gap-2 shadow-lg shadow-amber-600/30";
+                animateLoop();
             } else {
                 playIcon.className = 'fa-solid fa-play';
+                playText.innerText = 'Continuar';
+                playBtn.className = "px-5 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl transition flex items-center gap-2 shadow-lg shadow-blue-600/30";
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
             }
         }
 
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            const toastIcon = document.getElementById('toastIcon');
+        function animateLoop() {
+            if (!isPlaying) return;
 
-            toastMsg.innerText = msg;
-            if (type === 'warning') {
-                toastIcon.className = 'fa-solid fa-triangle-exclamation text-amber-400 text-base';
-            } else {
-                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            currentTime += 0.05;
+            if (currentTime > 36) {
+                currentTime = 0;
             }
 
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2500);
+            updateUI();
+            animationFrameId = requestAnimationFrame(animateLoop);
         }
 
         function setupEventListeners() {
-            // Play / Pause
-            document.getElementById('btnPlayPause').addEventListener('click', () => {
-                const maxT = Math.max(...points.map(p => p.t));
-                if (currentTime >= maxT) currentTime = 0;
-                isPlaying = !isPlaying;
-                updatePlayButtonIcon();
-                if (isPlaying) {
-                    lastTimestamp = performance.now();
-                    animFrameId = requestAnimationFrame(playLoop);
-                }
-            });
+            document.getElementById('playBtn').addEventListener('click', togglePlay);
 
-            // Stop
-            document.getElementById('btnStop').addEventListener('click', () => {
+            document.getElementById('resetBtn').addEventListener('click', () => {
                 isPlaying = false;
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
                 currentTime = 0;
-                updatePlayButtonIcon();
+                document.getElementById('playIcon').className = 'fa-solid fa-play';
+                document.getElementById('playText').innerText = 'Iniciar SimulaciÃ³n';
+                document.getElementById('playBtn').className = "px-5 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl transition flex items-center gap-2 shadow-lg shadow-blue-600/30";
                 updateUI();
             });
 
-            // Step controls
-            document.getElementById('btnStepBack').addEventListener('click', () => {
-                currentTime = Math.max(0, currentTime - 1);
-                updateUI();
-            });
-
-            document.getElementById('btnStepForward').addEventListener('click', () => {
-                const maxT = Math.max(...points.map(p => p.t));
-                currentTime = Math.min(maxT, currentTime + 1);
-                updateUI();
-            });
-
-            // Speed selectors
-            document.querySelectorAll('.btnSpeed').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.btnSpeed').forEach(b => {
-                        b.classList.remove('bg-blue-600', 'text-white');
-                        b.classList.add('text-slate-300');
-                    });
-                    e.target.classList.add('bg-blue-600', 'text-white');
-                    e.target.classList.remove('text-slate-300');
-                    playbackSpeed = parseFloat(e.target.dataset.speed);
-                });
-            });
-
-            // Time Slider
             document.getElementById('timeSlider').addEventListener('input', (e) => {
                 currentTime = parseFloat(e.target.value);
                 updateUI();
             });
 
-            // Interpolation method buttons
-            document.getElementById('btnMethodPCHIP').addEventListener('click', () => {
-                activeMethod = 'pchip';
-                document.getElementById('btnMethodPCHIP').className = 'method-btn active px-3 py-2 text-xs font-medium rounded-lg border bg-blue-600/30 border-blue-500 text-blue-200 flex items-center justify-center gap-2';
-                document.getElementById('btnMethodLinear').className = 'method-btn px-3 py-2 text-xs font-medium rounded-lg border bg-slate-700/40 border-slate-600 text-slate-400 hover:bg-slate-700 flex items-center justify-center gap-2';
+            document.getElementById('scenarioSelect').addEventListener('change', (e) => {
+                currentScenario = e.target.value;
+                updateChartData();
+                populateTable();
                 updateUI();
-                showToast('InterpolaciÃ³n cambiada a PCHIP CÃºbica');
             });
 
-            document.getElementById('btnMethodLinear').addEventListener('click', () => {
-                activeMethod = 'linear';
-                document.getElementById('btnMethodLinear').className = 'method-btn active px-3 py-2 text-xs font-medium rounded-lg border bg-blue-600/30 border-blue-500 text-blue-200 flex items-center justify-center gap-2';
-                document.getElementById('btnMethodPCHIP').className = 'method-btn px-3 py-2 text-xs font-medium rounded-lg border bg-slate-700/40 border-slate-600 text-slate-400 hover:bg-slate-700 flex items-center justify-center gap-2';
+            // Hydraulic Sliders
+            document.getElementById('paramB').addEventListener('input', (e) => {
+                hydraulicParams.B = parseFloat(e.target.value);
+                document.getElementById('paramBVal').innerText = `${hydraulicParams.B} m`;
                 updateUI();
-                showToast('InterpolaciÃ³n cambiada a Lineal');
             });
 
-            // Add Row Button
-            document.getElementById('btnAddRow').addEventListener('click', () => {
-                const maxT = Math.max(...points.map(p => p.t));
-                const newT = maxT + 6;
-                const lastQ = points[points.length - 1].q;
-                points.push({ t: newT, q: lastQ });
-                renderTable();
+            document.getElementById('paramN').addEventListener('input', (e) => {
+                hydraulicParams.n = parseFloat(e.target.value);
+                document.getElementById('paramNVal').innerText = hydraulicParams.n.toFixed(3);
                 updateUI();
-                showToast(`Punto en t=${newT}h aÃ±adido`);
             });
 
-            // Reset Data
-            document.getElementById('btnResetData').addEventListener('click', () => {
-                points = JSON.parse(JSON.stringify(DEFAULT_DATA));
-                currentTime = 0;
-                isPlaying = false;
-                updatePlayButtonIcon();
-                renderTable();
+            document.getElementById('paramS').addEventListener('input', (e) => {
+                hydraulicParams.S = parseFloat(e.target.value);
+                document.getElementById('paramSVal').innerText = `${hydraulicParams.S.toFixed(4)} m/m`;
                 updateUI();
-                showToast('Datos reestablecidos a valores originales');
             });
 
-            // Export CSV
-            document.getElementById('btnExportCSV').addEventListener('click', () => {
-                let csvContent = "data:text/csv;charset=utf-8,Tiempo (h),Caudal Simulado (m3/s),Volumen Acumulado (hm3)\n";
-                const maxT = Math.max(...points.map(p => p.t));
-                for (let t = 0; t <= maxT; t += 0.5) {
-                    const q = getFlowAtTime(t);
-                    const volHm3 = (calculateVolumeM3(t) / 1e6).toFixed(4);
-                    csvContent += `${t.toFixed(1)},${q.toFixed(2)},${volHm3}\n`;
-                }
-
+            // CSV Export
+            document.getElementById('exportCsvBtn').addEventListener('click', () => {
+                const activeData = getActiveData();
+                let csvContent = "data:text/csv;charset=utf-8,Tiempo_h,Caudal_m3s\n";
+                activeData.forEach(d => {
+                    csvContent += `${d.t},${d.q.toFixed(2)}\n`;
+                });
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "simulacion_hidrologica_caudal.csv");
+                link.setAttribute("download", "hidrograma_rio_cauca.csv");
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                showToast('Archivo CSV descargado');
+            });
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                updateUI();
             });
         }
 
-        window.onload = function() {
+        window.onload = function () {
+            initParticles();
+            resizeCanvas();
             initChart();
-            renderTable();
-            updateUI();
-            initParticleCanvas();
+            populateTable();
             setupEventListeners();
+            updateUI();
         };
     </script>
 </body>
